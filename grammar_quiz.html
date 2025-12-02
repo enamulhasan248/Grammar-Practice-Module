@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grammar Master: Phrase Practice</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap');
+
+        :root {
+            --primary: #6c5ce7;
+            --secondary: #00b894;
+            --accent: #fdcb6e;
+            --wrong: #d63031;
+            --bg-gradient: linear-gradient(135deg, #FFDEE9 0%, #B5FFFC 100%);
+            --sidebar-bg: #ffffff;
+            --text-color: #2d3436;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Fredoka', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: var(--bg-gradient);
+            height: 100vh;
+            overflow: hidden;
+            /* Prevent body scroll, let containers scroll */
+            color: var(--text-color);
+        }
+
+        /* --- LAYOUT --- */
+        .app-container {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* Sidebar (Desktop) */
+        .sidebar {
+            width: 260px;
+            background: var(--sidebar-bg);
+            border-right: 4px solid #dfe6e9;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            font-size: 1.5em;
+            color: var(--primary);
+            margin-bottom: 30px;
+            text-align: center;
+            text-shadow: 2px 2px 0px #dfe6e9;
+        }
+
+        .set-btn {
+            background: none;
+            border: 2px solid #dfe6e9;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 1.1em;
+            color: #636e72;
+            text-align: left;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .set-btn:hover {
+            background-color: #f1f2f6;
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .set-btn.active {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 4px 10px rgba(108, 92, 231, 0.3);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            /* Align top so scrolling works */
+        }
+
+        /* Mobile Header */
+        .mobile-header {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: white;
+            z-index: 200;
+            align-items: center;
+            padding: 0 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .hamburger {
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--primary);
+        }
+
+        /* --- QUIZ CARD STYLES --- */
+        .quiz-card {
+            background-color: #ffffff;
+            border-radius: 25px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 700px;
+            border: 5px solid #FF9A9E;
+            margin-top: 20px;
+            /* Space from top */
+            margin-bottom: 40px;
+            /* Space for scrolling */
+        }
+
+        h2 {
+            color: #FF6B6B;
+            margin-top: 0;
+        }
+
+        .progress-pill {
+            background: #dfe6e9;
+            color: var(--primary);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .sentence-box {
+            background-color: #E0F7FA;
+            border: 3px dashed #4DD0E1;
+            padding: 25px;
+            border-radius: 20px;
+            font-size: 1.3em;
+            margin-bottom: 25px;
+            color: #006064;
+            line-height: 1.6;
+        }
+
+        u {
+            text-decoration: none;
+            background-color: #ffeaa7;
+            border-bottom: 4px solid #fdcb6e;
+            padding: 0 5px;
+            border-radius: 5px;
+            color: #d63031;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .option-btn {
+            background-color: #fff;
+            border: 3px solid #dfe6e9;
+            border-radius: 15px;
+            padding: 15px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-family: inherit;
+            color: #636e72;
+            transition: all 0.2s;
+            box-shadow: 0 4px 0 #b2bec3;
+        }
+
+        .option-btn:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        .option-btn:hover:not([disabled]) {
+            border-color: #74b9ff;
+            background: #f1f2f6;
+        }
+
+        .option-btn.correct {
+            background-color: #55efc4;
+            border-color: var(--secondary);
+            color: white;
+            box-shadow: 0 4px 0 #008f72;
+        }
+
+        .option-btn.wrong {
+            background-color: #ff7675;
+            border-color: var(--wrong);
+            color: white;
+            box-shadow: 0 4px 0 #b32929;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 25px;
+        }
+
+        .nav-btn {
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-size: 1.1em;
+            font-family: inherit;
+            cursor: pointer;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
+            transition: transform 0.1s;
+        }
+
+        .nav-btn:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        .back-btn {
+            background-color: var(--accent);
+            color: #2d3436;
+        }
+
+        .back-btn:disabled {
+            background-color: #dfe6e9;
+            color: #b2bec3;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .next-btn {
+            background-color: #0984e3;
+            display: none;
+        }
+
+        .feedback {
+            font-weight: bold;
+            min-height: 24px;
+            font-size: 1.1em;
+            margin-top: 15px;
+        }
+
+        .results-view {
+            display: none;
+            text-align: center;
+        }
+
+        .final-score {
+            font-size: 4em;
+            color: var(--primary);
+            margin: 20px 0;
+            text-shadow: 3px 3px 0 #a29bfe;
+        }
+
+        .restart-btn {
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 1.3em;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #008f72;
+        }
+
+        /* --- RESPONSIVE MEDIA QUERIES --- */
+        @media (max-width: 768px) {
+            .mobile-header {
+                display: flex;
+            }
+
+            .app-container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                position: fixed;
+                top: 60px;
+                left: 0;
+                bottom: 0;
+                width: 250px;
+                transform: translateX(-100%);
+                box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                padding-top: 80px;
+                /* Account for mobile header */
+                width: 100%;
+            }
+
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="mobile-header">
+        <div class="hamburger" onclick="toggleSidebar()">☰</div>
+        <h3 style="margin-left: 15px; color: var(--primary);">Grammar Master</h3>
+    </div>
+
+    <div class="app-container">
+
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">Practice Sets</div>
+            <div id="menu-container">
+            </div>
+        </aside>
+
+        <main class="main-content" onclick="closeSidebarOnMobile()">
+
+            <div class="quiz-card">
+
+                <div id="quiz-interface">
+                    <h2 id="set-title">Set 1</h2>
+                    <div class="progress-pill">Question <span id="current-q">1</span> of <span id="total-q">30</span>
+                    </div>
+
+                    <div class="sentence-box" id="sentence-display">Loading...</div>
+
+                    <div class="options-grid" id="options-container"></div>
+
+                    <div class="feedback" id="feedback-text"></div>
+
+                    <div class="nav-buttons">
+                        <button class="nav-btn back-btn" id="back-btn" onclick="prevQuestion()">⬅ Go Back</button>
+                        <button class="nav-btn next-btn" id="next-btn" onclick="nextQuestion()">Next ➡</button>
+                    </div>
+                </div>
+
+                <div id="results-interface" class="results-view">
+                    <h1>🎉 Set Completed! 🎉</h1>
+                    <p>You scored:</p>
+                    <div class="final-score" id="final-score">0 / 30</div>
+                    <p id="evaluation-text" style="font-size: 1.2em; color: #555;"></p>
+                    <button class="restart-btn" onclick="resetCurrentSet()">Replay This Set</button>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // --- DATA CONFIGURATION ---
+        const phraseTypes = ["Noun Phrase", "Adjective Phrase", "Adverb Phrase", "Prepositional Phrase"];
+
+        // NOTE: Set 1 is full. Set 2 is partial sample. Sets 3-10 are placeholders.
+        // You can replace the placeholder data with your real 30 questions per set.
+        const quizSets = [
+            // SET 1 (Full)
+            [
+                { text: "The <u>fluffy white rabbit</u> hopped away.", type: "Noun Phrase" },
+                { text: "My dad drives <u>very carefully</u>.", type: "Adverb Phrase" },
+                { text: "The monster <u>under the bed</u> is friendly.", type: "Prepositional Phrase" },
+                { text: "She was <u>happy about the gift</u>.", type: "Adjective Phrase" },
+                { text: "<u>Eating chocolate cake</u> is my favorite thing.", type: "Noun Phrase" },
+                { text: "The turtle moved <u>quite slowly</u> across the road.", type: "Adverb Phrase" },
+                { text: "We sat <u>on the green grass</u>.", type: "Prepositional Phrase" },
+                { text: "The boy <u>in the red shirt</u> is my brother.", type: "Adjective Phrase" },
+                { text: "<u>To win the game</u> requires practice.", type: "Noun Phrase" },
+                { text: "The stars shine <u>brightly in the sky</u>.", type: "Adverb Phrase" },
+                { text: "The cat jumped <u>into the cardboard box</u>.", type: "Prepositional Phrase" },
+                { text: "This math problem is <u>too hard to solve</u>.", type: "Adjective Phrase" },
+                { text: "<u>My best friend</u> lives next door.", type: "Noun Phrase" },
+                { text: "He finished his homework <u>surprisingly fast</u>.", type: "Adverb Phrase" },
+                { text: "The bird flew <u>over the tall tree</u>.", type: "Prepositional Phrase" },
+                { text: "The princess was <u>very brave</u>.", type: "Adjective Phrase" },
+                { text: "<u>A large slice of pizza</u> fell on the floor.", type: "Noun Phrase" },
+                { text: "They arrived <u>later than usual</u>.", type: "Adverb Phrase" },
+                { text: "Put your toys <u>inside the toy chest</u>.", type: "Prepositional Phrase" },
+                { text: "The dragon was <u>covered in green scales</u>.", type: "Adjective Phrase" },
+                { text: "<u>Reading comic books</u> is fun.", type: "Noun Phrase" },
+                { text: "The rain fell <u>extremely heavily</u>.", type: "Adverb Phrase" },
+                { text: "We walked <u>along the sandy beach</u>.", type: "Prepositional Phrase" },
+                { text: "Mom is <u>proud of my grades</u>.", type: "Adjective Phrase" },
+                { text: "<u>The rusty old robot</u> stopped working.", type: "Noun Phrase" },
+                { text: "He shouted <u>loud enough to hear</u>.", type: "Adverb Phrase" },
+                { text: "The gift is <u>for your birthday</u>.", type: "Prepositional Phrase" },
+                { text: "The puppy is <u>so cute and tiny</u>.", type: "Adjective Phrase" },
+                { text: "I want <u>to buy a new bike</u>.", type: "Noun Phrase" },
+                { text: "She dances <u>really well</u>.", type: "Adverb Phrase" }
+            ],
+            // SET 2 (Sample - Expand to 30)
+            [
+                { text: "The <u>golden retriever</u> fetched the ball.", type: "Noun Phrase" },
+                { text: "He whispered <u>very softly</u> in the library.", type: "Adverb Phrase" },
+                { text: "The cookies are <u>in the glass jar</u>.", type: "Prepositional Phrase" },
+                { text: "The water was <u>extremely cold</u>.", type: "Adjective Phrase" },
+                { text: "<u>Playing video games</u> is my hobby.", type: "Noun Phrase" },
+                { text: "She finished the test <u>quite easily</u>.", type: "Adverb Phrase" },
+                { text: "We looked <u>under the old rug</u>.", type: "Prepositional Phrase" },
+                { text: "The sky is <u>clear and blue</u>.", type: "Adjective Phrase" },
+                { text: "<u>My younger brother</u> broke the vase.", type: "Noun Phrase" },
+                { text: "The snail moved <u>incredibly slowly</u>.", type: "Adverb Phrase" },
+                { text: "The plane flew <u>above the white clouds</u>.", type: "Prepositional Phrase" },
+                { text: "The dress was <u>too expensive to buy</u>.", type: "Adjective Phrase" },
+                { text: "<u>To climb a mountain</u> takes courage.", type: "Noun Phrase" },
+                { text: "They arrived <u>sooner than expected</u>.", type: "Adverb Phrase" },
+                { text: "The car is parked <u>near the garage</u>.", type: "Prepositional Phrase" },
+                { text: "I am <u>tired of waiting</u>.", type: "Adjective Phrase" },
+                { text: "<u>The bright yellow sun</u> warmed the earth.", type: "Noun Phrase" },
+                { text: "He behaves <u>rather rudely</u>.", type: "Adverb Phrase" },
+                { text: "Let's meet <u>at the movie theater</u>.", type: "Prepositional Phrase" },
+                { text: "The box is <u>too heavy to lift</u>.", type: "Adjective Phrase" },
+                { text: "<u>A flock of seagulls</u> flew by.", type: "Noun Phrase" },
+                { text: "She smiled <u>very sweetly</u>.", type: "Adverb Phrase" },
+                { text: "We drove <u>through the dark tunnel</u>.", type: "Prepositional Phrase" },
+                { text: "The cake was <u>deliciously sweet</u>.", type: "Adjective Phrase" },
+                { text: "<u>The mysterious stranger</u> wore a cloak.", type: "Noun Phrase" },
+                { text: "I will do it <u>right now</u>.", type: "Adverb Phrase" },
+                { text: "The apple fell <u>off the tree</u>.", type: "Prepositional Phrase" },
+                { text: "He is <u>good at soccer</u>.", type: "Adjective Phrase" },
+                { text: "<u>Drinking fresh water</u> is healthy.", type: "Noun Phrase" },
+                { text: "The wind blew <u>fiercely outside</u>.", type: "Adverb Phrase" }
+            ],
+            // SETS 3-10 (Placeholders)
+            [
+                { text: "The <u>little green frog</u> jumped into the pond.", type: "Noun Phrase" },
+                { text: "She answered the question <u>very wisely</u>.", type: "Adverb Phrase" },
+                { text: "The treasure is hidden <u>behind the waterfall</u>.", type: "Prepositional Phrase" },
+                { text: "The kittens are <u>full of energy</u>.", type: "Adjective Phrase" },
+                { text: "<u>A basket of fruit</u> sat on the table.", type: "Noun Phrase" },
+                { text: "He works <u>harder than anyone else</u>.", type: "Adverb Phrase" },
+                { text: "We walked <u>towards the mountains</u>.", type: "Prepositional Phrase" },
+                { text: "The story was <u>really exciting</u>.", type: "Adjective Phrase" },
+                { text: "<u>The old clock</u> chimed midnight.", type: "Noun Phrase" },
+                { text: "The rain stopped <u>quite suddenly</u>.", type: "Adverb Phrase" },
+                { text: "The bird built a nest <u>in the oak tree</u>.", type: "Prepositional Phrase" },
+                { text: "He is <u>capable of great things</u>.", type: "Adjective Phrase" },
+                { text: "<u>To help others</u> is important.", type: "Noun Phrase" },
+                { text: "They played <u>happily in the yard</u>.", type: "Adverb Phrase" },
+                { text: "Put the milk <u>in the fridge</u>.", type: "Prepositional Phrase" },
+                { text: "The movie was <u>too long</u>.", type: "Adjective Phrase" },
+                { text: "<u>The captain of the ship</u> shouted orders.", type: "Noun Phrase" },
+                { text: "The sun shines <u>brighter today</u>.", type: "Adverb Phrase" },
+                { text: "We are going <u>to the zoo</u>.", type: "Prepositional Phrase" },
+                { text: "The glass is <u>full of water</u>.", type: "Adjective Phrase" },
+                { text: "<u>A loud crash</u> woke me up.", type: "Noun Phrase" },
+                { text: "She sings <u>like an angel</u>.", type: "Adverb Phrase" },
+                { text: "The dog slept <u>under the porch</u>.", type: "Prepositional Phrase" },
+                { text: "Her dress is <u>made of silk</u>.", type: "Adjective Phrase" },
+                { text: "<u>Writing a letter</u> takes time.", type: "Noun Phrase" },
+                { text: "He runs <u>very quickly</u>.", type: "Adverb Phrase" },
+                { text: "The keys are <u>on the hook</u>.", type: "Prepositional Phrase" },
+                { text: "I felt <u>really sad</u> yesterday.", type: "Adjective Phrase" },
+                { text: "<u>The purple butterfly</u> landed on my hand.", type: "Noun Phrase" },
+                { text: "They spoke <u>in a whisper</u>.", type: "Adverb Phrase" }
+            ],
+            [
+                { text: "The <u>broken window</u> needs fixing.", type: "Noun Phrase" },
+                { text: "She walked <u>across the busy street</u>.", type: "Prepositional Phrase" },
+                { text: "The boy was <u>very happy</u> with his toy.", type: "Adjective Phrase" },
+                { text: "He shouted <u>quite loudly</u> at the game.", type: "Adverb Phrase" },
+                { text: "<u>To learn a new language</u> is difficult.", type: "Noun Phrase" },
+                { text: "The troll lives <u>under the stone bridge</u>.", type: "Prepositional Phrase" },
+                { text: "The flag is <u>blue and white</u>.", type: "Adjective Phrase" },
+                { text: "We left home <u>yesterday morning</u>.", type: "Adverb Phrase" },
+                { text: "<u>A large piece of cake</u> was left.", type: "Noun Phrase" },
+                { text: "She greeted us <u>with a warm smile</u>.", type: "Prepositional Phrase" },
+                { text: "He performed <u>extremely well</u> on stage.", type: "Adverb Phrase" },
+                { text: "I am <u>bored with this game</u>.", type: "Adjective Phrase" },
+                { text: "<u>My favorite song</u> is playing now.", type: "Noun Phrase" },
+                { text: "The cat is <u>inside the cardboard box</u>.", type: "Prepositional Phrase" },
+                { text: "She is <u>taller than me</u>.", type: "Adjective Phrase" },
+                { text: "You should arrive <u>sooner rather than later</u>.", type: "Adverb Phrase" },
+                { text: "<u>The man in the suit</u> is my boss.", type: "Noun Phrase" },
+                { text: "This gift is <u>for your mother</u>.", type: "Prepositional Phrase" },
+                { text: "He drove <u>carefully enough</u>.", type: "Adverb Phrase" },
+                { text: "The kids were <u>full of joy</u>.", type: "Adjective Phrase" },
+                { text: "<u>Reading interesting books</u> expands the mind.", type: "Noun Phrase" },
+                { text: "Put the vase <u>on the dining table</u>.", type: "Prepositional Phrase" },
+                { text: "The water is <u>too cold to swim</u>.", type: "Adjective Phrase" },
+                { text: "The snail moved <u>rather slowly</u>.", type: "Adverb Phrase" },
+                { text: "Please be quiet <u>during the movie</u>.", type: "Prepositional Phrase" },
+                { text: "<u>The small black kitten</u> purred softly.", type: "Noun Phrase" },
+                { text: "He was <u>angry at the dog</u>.", type: "Adjective Phrase" },
+                { text: "She runs <u>very quickly</u>.", type: "Adverb Phrase" },
+                { text: "<u>The old rusty car</u> broke down.", type: "Noun Phrase" },
+                { text: "We met <u>near the school</u>.", type: "Prepositional Phrase" }
+            ],
+            [
+                { text: "He is <u>almost always</u> on time.", type: "Adverb Phrase" },
+                { text: "<u>The singing bird</u> woke me up.", type: "Noun Phrase" },
+                { text: "We picnicked <u>beside the river</u>.", type: "Prepositional Phrase" },
+                { text: "She is <u>afraid of the dark</u>.", type: "Adjective Phrase" },
+                { text: "He accepted the offer <u>without a doubt</u>.", type: "Prepositional Phrase" },
+                { text: "<u>Collecting rare stamps</u> is his hobby.", type: "Noun Phrase" },
+                { text: "I was <u>really tired</u> after work.", type: "Adjective Phrase" },
+                { text: "The test was <u>surprisingly easy</u>.", type: "Adjective Phrase" },
+                { text: "<u>A box of chocolates</u> sat on the desk.", type: "Noun Phrase" },
+                { text: "I drink coffee <u>in the morning</u>.", type: "Prepositional Phrase" },
+                { text: "He was <u>green with envy</u>.", type: "Adjective Phrase" },
+                { text: "They arrived <u>very late</u>.", type: "Adverb Phrase" },
+                { text: "<u>That tall building</u> is new.", type: "Noun Phrase" },
+                { text: "The path goes <u>between the trees</u>.", type: "Prepositional Phrase" },
+                { text: "The food was <u>good enough</u>.", type: "Adjective Phrase" },
+                { text: "We are <u>nowhere near</u> the destination.", type: "Adverb Phrase" },
+                { text: "<u>To understand the truth</u> is important.", type: "Noun Phrase" },
+                { text: "We leaned <u>against the wind</u>.", type: "Prepositional Phrase" },
+                { text: "She was <u>upset about the loss</u>.", type: "Adjective Phrase" },
+                { text: "You are driving <u>too fast</u>.", type: "Adverb Phrase" },
+                { text: "<u>The boy with glasses</u> is smart.", type: "Noun Phrase" },
+                { text: "The book fell <u>off the shelf</u>.", type: "Prepositional Phrase" },
+                { text: "Her voice is <u>sweet as honey</u>.", type: "Adjective Phrase" },
+                { text: "Handle the glass <u>gently</u>.", type: "Adverb Phrase" },
+                { text: "<u>My new phone</u> is expensive.", type: "Noun Phrase" },
+                { text: "We walked <u>towards the city</u>.", type: "Prepositional Phrase" },
+                { text: "I am <u>ready to go</u>.", type: "Adjective Phrase" },
+                { text: "He visits us <u>every week</u>.", type: "Adverb Phrase" },
+                { text: "<u>The loud noise</u> startled us.", type: "Noun Phrase" },
+                { text: "We slept <u>under the stars</u>.", type: "Prepositional Phrase" }
+            ],
+            [
+                { text: "The <u>giant oak tree</u> provided shade.", type: "Noun Phrase" },
+                { text: "He jumped <u>over the high fence</u>.", type: "Prepositional Phrase" },
+                { text: "She finished the work <u>very quickly</u>.", type: "Adverb Phrase" },
+                { text: "He is <u>afraid of heights</u>.", type: "Adjective Phrase" },
+                { text: "<u>To ride a bike</u> is easy.", type: "Noun Phrase" },
+                { text: "The treasure is <u>in the blue box</u>.", type: "Prepositional Phrase" },
+                { text: "They played <u>quite happily</u> together.", type: "Adverb Phrase" },
+                { text: "The apple is <u>red and shiny</u>.", type: "Adjective Phrase" },
+                { text: "<u>My grandmother</u> bakes the best cookies.", type: "Noun Phrase" },
+                { text: "We slid <u>down the slide</u>.", type: "Prepositional Phrase" },
+                { text: "We looked <u>almost everywhere</u> for the keys.", type: "Adverb Phrase" },
+                { text: "The dog came home <u>covered in mud</u>.", type: "Adjective Phrase" },
+                { text: "<u>The playful puppy</u> chewed the shoe.", type: "Noun Phrase" },
+                { text: "He left <u>without a sound</u>.", type: "Prepositional Phrase" },
+                { text: "The music was playing <u>too loudly</u>.", type: "Adverb Phrase" },
+                { text: "I am <u>happy to see you</u>.", type: "Adjective Phrase" },
+                { text: "<u>A bowl of soup</u> warmed me up.", type: "Noun Phrase" },
+                { text: "They swam <u>across the river</u>.", type: "Prepositional Phrase" },
+                { text: "She performed <u>extremely well</u>.", type: "Adverb Phrase" },
+                { text: "I am <u>tired from running</u>.", type: "Adjective Phrase" },
+                { text: "<u>The man in the moon</u> smiled down.", type: "Noun Phrase" },
+                { text: "Hide <u>under the blanket</u>.", type: "Prepositional Phrase" },
+                { text: "It will happen <u>sooner than you think</u>.", type: "Adverb Phrase" },
+                { text: "The actor is <u>very famous</u>.", type: "Adjective Phrase" },
+                { text: "<u>Reading quietly</u> is relaxing.", type: "Noun Phrase" },
+                { text: "The park is <u>beside the school</u>.", type: "Prepositional Phrase" },
+                { text: "He calls his mom <u>every single day</u>.", type: "Adverb Phrase" },
+                { text: "The sun was <u>bright yellow</u>.", type: "Adjective Phrase" },
+                { text: "Who wants <u>the last slice</u>?", type: "Noun Phrase" },
+                { text: "We waited <u>for a long time</u>.", type: "Prepositional Phrase" }
+            ],
+            [
+                { text: "I am <u>proud of you</u>.", type: "Adjective Phrase" },
+                { text: "<u>The wise old owl</u> sat in the tree.", type: "Noun Phrase" },
+                { text: "The car moved <u>incredibly fast</u>.", type: "Adverb Phrase" },
+                { text: "We sat <u>near the warm fire</u>.", type: "Prepositional Phrase" },
+                { text: "<u>Swimming in the pool</u> is fun.", type: "Noun Phrase" },
+                { text: "That wire is <u>dangerous to touch</u>.", type: "Adjective Phrase" },
+                { text: "The castle is <u>on top of the hill</u>.", type: "Prepositional Phrase" },
+                { text: "Everything is going <u>wonderfully well</u>.", type: "Adverb Phrase" },
+                { text: "He bought <u>a bag of chips</u>.", type: "Noun Phrase" },
+                { text: "The pillow is <u>soft and fluffy</u>.", type: "Adjective Phrase" },
+                { text: "They walked <u>into the deep woods</u>.", type: "Prepositional Phrase" },
+                { text: "Put the box <u>right here</u>.", type: "Adverb Phrase" },
+                { text: "<u>The girl with red hair</u> is my friend.", type: "Noun Phrase" },
+                { text: "The box was <u>full of surprises</u>.", type: "Adjective Phrase" },
+                { text: "We travel <u>during the summer</u>.", type: "Prepositional Phrase" },
+                { text: "He asked <u>very politely</u>.", type: "Adverb Phrase" },
+                { text: "<u>To catch a fish</u> requires bait.", type: "Noun Phrase" },
+                { text: "The fruit tastes <u>sweet like candy</u>.", type: "Adjective Phrase" },
+                { text: "She hid <u>behind the curtain</u>.", type: "Prepositional Phrase" },
+                { text: "I will see you <u>much later</u>.", type: "Adverb Phrase" },
+                { text: "This is <u>my favorite toy</u>.", type: "Noun Phrase" },
+                { text: "Are you <u>ready for bed</u>?", type: "Adjective Phrase" },
+                { text: "Flowers grew <u>along the path</u>.", type: "Prepositional Phrase" },
+                { text: "The weeds grew <u>wildly out of control</u>.", type: "Adverb Phrase" },
+                { text: "<u>The broken chair</u> was thrown away.", type: "Noun Phrase" },
+                { text: "Don't be <u>angry at the rain</u>.", type: "Adjective Phrase" },
+                { text: "The cup fell <u>off the table</u>.", type: "Prepositional Phrase" },
+                { text: "I can hear you <u>quite clearly</u>.", type: "Adverb Phrase" },
+                { text: "<u>A herd of elephants</u> crossed the road.", type: "Noun Phrase" },
+                { text: "The bird flew <u>through the open window</u>.", type: "Prepositional Phrase" }
+            ],
+            [
+                { text: "The <u>golden trophy</u> sat on the shelf.", type: "Noun Phrase" },
+                { text: "He ran <u>towards the finish line</u>.", type: "Prepositional Phrase" },
+                { text: "She was <u>sad to leave</u>.", type: "Adjective Phrase" },
+                { text: "The bird chirped <u>very loudly</u>.", type: "Adverb Phrase" },
+                { text: "<u>To solve the puzzle</u> was hard.", type: "Noun Phrase" },
+                { text: "We looked <u>under the bed</u>.", type: "Prepositional Phrase" },
+                { text: "The soup was <u>too salty to eat</u>.", type: "Adjective Phrase" },
+                { text: "He visits <u>every summer</u>.", type: "Adverb Phrase" },
+                { text: "<u>My favorite color</u> is green.", type: "Noun Phrase" },
+                { text: "The cat jumped <u>off the fence</u>.", type: "Prepositional Phrase" },
+                { text: "The room was <u>dark and cold</u>.", type: "Adjective Phrase" },
+                { text: "She draws <u>really well</u>.", type: "Adverb Phrase" },
+                { text: "<u>A glass of milk</u> is on the table.", type: "Noun Phrase" },
+                { text: "We walked <u>along the path</u>.", type: "Prepositional Phrase" },
+                { text: "He is <u>capable of winning</u>.", type: "Adjective Phrase" },
+                { text: "I will call you <u>later tonight</u>.", type: "Adverb Phrase" },
+                { text: "<u>The old man</u> told a story.", type: "Noun Phrase" },
+                { text: "The keys are <u>in the drawer</u>.", type: "Prepositional Phrase" },
+                { text: "She is <u>fond of music</u>.", type: "Adjective Phrase" },
+                { text: "The snow fell <u>softly down</u>.", type: "Adverb Phrase" },
+                { text: "<u>Playing the guitar</u> is fun.", type: "Noun Phrase" },
+                { text: "He stood <u>behind the curtain</u>.", type: "Prepositional Phrase" },
+                { text: "The car is <u>shiny and new</u>.", type: "Adjective Phrase" },
+                { text: "They arrived <u>just in time</u>.", type: "Adverb Phrase" },
+                { text: "<u>The scary monster</u> roared.", type: "Noun Phrase" },
+                { text: "We drove <u>through the tunnel</u>.", type: "Prepositional Phrase" },
+                { text: "I am <u>ready to help</u>.", type: "Adjective Phrase" },
+                { text: "She smiled <u>so sweetly</u>.", type: "Adverb Phrase" },
+                { text: "<u>Buying a gift</u> is thoughtful.", type: "Noun Phrase" },
+                { text: "The book is <u>on the desk</u>.", type: "Prepositional Phrase" }
+            ],
+            [
+                { text: "She answered <u>quite correctly</u>.", type: "Adverb Phrase" },
+                { text: "The dog is <u>in the backyard</u>.", type: "Prepositional Phrase" },
+                { text: "<u>The brave soldier</u> marched on.", type: "Noun Phrase" },
+                { text: "He is <u>good at math</u>.", type: "Adjective Phrase" },
+                { text: "We met <u>at the library</u>.", type: "Prepositional Phrase" },
+                { text: "The wind blew <u>extremely hard</u>.", type: "Adverb Phrase" },
+                { text: "<u>A flock of sheep</u> grazed nearby.", type: "Noun Phrase" },
+                { text: "The water is <u>deep blue</u>.", type: "Adjective Phrase" },
+                { text: "She placed the vase <u>on the mantle</u>.", type: "Prepositional Phrase" },
+                { text: "He spoke <u>with great anger</u>.", type: "Adverb Phrase" },
+                { text: "<u>To fly a kite</u> requires wind.", type: "Noun Phrase" },
+                { text: "I am <u>excited about the trip</u>.", type: "Adjective Phrase" },
+                { text: "The car parked <u>near the gate</u>.", type: "Prepositional Phrase" },
+                { text: "They worked <u>all day long</u>.", type: "Adverb Phrase" },
+                { text: "<u>My younger sister</u> is crying.", type: "Noun Phrase" },
+                { text: "The house is <u>made of brick</u>.", type: "Adjective Phrase" },
+                { text: "He hid <u>under the blanket</u>.", type: "Prepositional Phrase" },
+                { text: "She runs <u>faster than me</u>.", type: "Adverb Phrase" },
+                { text: "<u>Eating vegetables</u> is healthy.", type: "Noun Phrase" },
+                { text: "The boy is <u>afraid of dogs</u>.", type: "Adjective Phrase" },
+                { text: "We walked <u>across the bridge</u>.", type: "Prepositional Phrase" },
+                { text: "It happened <u>very suddenly</u>.", type: "Adverb Phrase" },
+                { text: "<u>The bright star</u> twinkled above.", type: "Noun Phrase" },
+                { text: "The tea is <u>too hot</u>.", type: "Adjective Phrase" },
+                { text: "Put the toys <u>inside the box</u>.", type: "Prepositional Phrase" },
+                { text: "He behaves <u>very rudely</u>.", type: "Adverb Phrase" },
+                { text: "<u>A bag of apples</u> fell over.", type: "Noun Phrase" },
+                { text: "She is <u>happy with her grades</u>.", type: "Adjective Phrase" },
+                { text: "The bird flew <u>over the house</u>.", type: "Prepositional Phrase" },
+                { text: "Please come <u>right now</u>.", type: "Adverb Phrase" }
+            ],
+            [
+                { text: "The <u>tiny red ant</u> carried a crumb.", type: "Noun Phrase" },
+                { text: "He acted <u>very foolishly</u>.", type: "Adverb Phrase" },
+                { text: "The cat slept <u>on the soft pillow</u>.", type: "Prepositional Phrase" },
+                { text: "The sky was <u>clear and sunny</u>.", type: "Adjective Phrase" },
+                { text: "<u>To learn guitar</u> takes practice.", type: "Noun Phrase" },
+                { text: "She sings <u>like a professional</u>.", type: "Adverb Phrase" },
+                { text: "We sat <u>by the campfire</u>.", type: "Prepositional Phrase" },
+                { text: "He was <u>upset with the news</u>.", type: "Adjective Phrase" },
+                { text: "<u>The loud thunder</u> scared us.", type: "Noun Phrase" },
+                { text: "They arrived <u>unexpectedly early</u>.", type: "Adverb Phrase" },
+                { text: "The boat sailed <u>across the lake</u>.", type: "Prepositional Phrase" },
+                { text: "This problem is <u>hard to solve</u>.", type: "Adjective Phrase" },
+                { text: "<u>A piece of paper</u> was on the floor.", type: "Noun Phrase" },
+                { text: "He works <u>harder than anyone</u>.", type: "Adverb Phrase" },
+                { text: "The ball rolled <u>under the car</u>.", type: "Prepositional Phrase" },
+                { text: "She is <u>proud of her son</u>.", type: "Adjective Phrase" },
+                { text: "<u>The chocolate cake</u> tasted great.", type: "Noun Phrase" },
+                { text: "The rain stopped <u>quite abruptly</u>.", type: "Adverb Phrase" },
+                { text: "Put the picture <u>on the wall</u>.", type: "Prepositional Phrase" },
+                { text: "The jar is <u>full of cookies</u>.", type: "Adjective Phrase" },
+                { text: "<u>Watching movies</u> is relaxing.", type: "Noun Phrase" },
+                { text: "She danced <u>gracefully on stage</u>.", type: "Adverb Phrase" },
+                { text: "We hiked <u>up the mountain</u>.", type: "Prepositional Phrase" },
+                { text: "He is <u>taller than his dad</u>.", type: "Adjective Phrase" },
+                { text: "<u>My best friend</u> moved away.", type: "Noun Phrase" },
+                { text: "Please speak <u>more slowly</u>.", type: "Adverb Phrase" },
+                { text: "The gift is <u>for you</u>.", type: "Prepositional Phrase" },
+                { text: "The weather is <u>perfect for a picnic</u>.", type: "Adjective Phrase" },
+                { text: "<u>A herd of cows</u> blocked the road.", type: "Noun Phrase" },
+                { text: "He finished <u>in record time</u>.", type: "Adverb Phrase" }
+            ],
+            [
+                { text: "He is <u>mad at me</u>.", type: "Adjective Phrase" },
+                { text: "The mouse ran <u>into the hole</u>.", type: "Prepositional Phrase" },
+                { text: "<u>The wooden chair</u> is broken.", type: "Noun Phrase" },
+                { text: "She reads <u>very often</u>.", type: "Adverb Phrase" },
+                { text: "The painting is <u>above the sofa</u>.", type: "Prepositional Phrase" },
+                { text: "I am <u>anxious to leave</u>.", type: "Adjective Phrase" },
+                { text: "<u>Collecting coins</u> is his hobby.", type: "Noun Phrase" },
+                { text: "The car moved <u>slowly forward</u>.", type: "Adverb Phrase" },
+                { text: "We stayed <u>at a hotel</u>.", type: "Prepositional Phrase" },
+                { text: "The dress is <u>pale pink</u>.", type: "Adjective Phrase" },
+                { text: "<u>The clever fox</u> tricked the crow.", type: "Noun Phrase" },
+                { text: "He laughed <u>loudly at the joke</u>.", type: "Adverb Phrase" },
+                { text: "The moon hid <u>behind the clouds</u>.", type: "Prepositional Phrase" },
+                { text: "She was <u>tired after work</u>.", type: "Adjective Phrase" },
+                { text: "<u>To win the game</u> is the goal.", type: "Noun Phrase" },
+                { text: "They left <u>quite recently</u>.", type: "Adverb Phrase" },
+                { text: "Throw the trash <u>in the bin</u>.", type: "Prepositional Phrase" },
+                { text: "The lemonade was <u>ice cold</u>.", type: "Adjective Phrase" },
+                { text: "<u>A swarm of bees</u> buzzed by.", type: "Noun Phrase" },
+                { text: "She paints <u>beautifully well</u>.", type: "Adverb Phrase" },
+                { text: "We gathered <u>around the table</u>.", type: "Prepositional Phrase" },
+                { text: "He is <u>short for his age</u>.", type: "Adjective Phrase" },
+                { text: "<u>The rusty nail</u> is dangerous.", type: "Noun Phrase" },
+                { text: "The snow fell <u>heavily all night</u>.", type: "Adverb Phrase" },
+                { text: "The clock is <u>on the wall</u>.", type: "Prepositional Phrase" },
+                { text: "This bed is <u>comfortable to sleep in</u>.", type: "Adjective Phrase" },
+                { text: "<u>Winning the prize</u> made her happy.", type: "Noun Phrase" },
+                { text: "The bird flew <u>away quickly</u>.", type: "Adverb Phrase" },
+                { text: "She walked <u>out the door</u>.", type: "Prepositional Phrase" },
+                { text: "The mountain path was <u>steep and rocky</u>.", type: "Adjective Phrase" }
+            ]
+        ];
+
+        // Helper to fill empty sets so the app doesn't crash while you build it
+        // for (let i = 1; i < 10; i++) {
+        //     if (quizSets[i].length < 5) {
+        //         quizSets[i] = [
+        //             { text: `Placeholder Q1 for Set ${i + 1}. <u>Is this a Noun?</u>`, type: "Noun Phrase" },
+        //             { text: `Placeholder Q2 for Set ${i + 1}. <u>Is this an Adverb?</u>`, type: "Adverb Phrase" },
+        //             { text: `Placeholder Q3 for Set ${i + 1}. <u>Is this Prepositional?</u>`, type: "Prepositional Phrase" },
+        //             { text: `Placeholder Q4 for Set ${i + 1}. <u>Is this Adjective?</u>`, type: "Adjective Phrase" }
+        //         ];
+        //     }
+        // }
+
+        // --- STATE MANAGEMENT ---
+        let currentSetIndex = 0;
+        let currentQuestionIndex = 0;
+
+        // Stores progress: userProgress[setIndex][questionIndex] = "User Answer"
+        let userProgress = {};
+
+        // --- DOM ELEMENTS ---
+        const menuContainer = document.getElementById('menu-container');
+        const quizInterface = document.getElementById('quiz-interface');
+        const resultsInterface = document.getElementById('results-interface');
+        const setTitle = document.getElementById('set-title');
+        const sentenceDisplay = document.getElementById('sentence-display');
+        const optionsContainer = document.getElementById('options-container');
+        const feedbackText = document.getElementById('feedback-text');
+        const nextBtn = document.getElementById('next-btn');
+        const backBtn = document.getElementById('back-btn');
+        const currentQText = document.getElementById('current-q');
+        const totalQText = document.getElementById('total-q');
+        const sidebar = document.getElementById('sidebar');
+
+        // --- INITIALIZATION ---
+        function init() {
+            renderSidebar();
+            loadSet(0);
+        }
+
+        // --- SIDEBAR LOGIC ---
+        function renderSidebar() {
+            menuContainer.innerHTML = '';
+            quizSets.forEach((set, index) => {
+                const btn = document.createElement('button');
+                btn.className = `set-btn ${index === currentSetIndex ? 'active' : ''}`;
+                btn.innerText = `📝 Practice Set ${index + 1}`;
+                btn.onclick = () => {
+                    loadSet(index);
+                    if (window.innerWidth <= 768) toggleSidebar(); // Close menu on mobile click
+                };
+                menuContainer.appendChild(btn);
+            });
+        }
+
+        function toggleSidebar() {
+            sidebar.classList.toggle('open');
+        }
+
+        function closeSidebarOnMobile() {
+            if (window.innerWidth <= 768) {
+                sidebar.classList.remove('open');
+            }
+        }
+
+        // --- QUIZ LOGIC ---
+        function loadSet(index) {
+            currentSetIndex = index;
+            currentQuestionIndex = 0;
+
+            // Initialize progress array for this set if not exists
+            if (!userProgress[currentSetIndex]) {
+                userProgress[currentSetIndex] = new Array(quizSets[currentSetIndex].length).fill(null);
+            }
+
+            renderSidebar(); // Update active class
+            resultsInterface.style.display = 'none';
+            quizInterface.style.display = 'block';
+
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const currentSet = quizSets[currentSetIndex];
+            const currentQ = currentSet[currentQuestionIndex];
+
+            // UI Updates
+            setTitle.innerText = `Practice Set ${currentSetIndex + 1}`;
+            currentQText.innerText = currentQuestionIndex + 1;
+            totalQText.innerText = currentSet.length;
+            sentenceDisplay.innerHTML = currentQ.text;
+            feedbackText.innerText = "";
+
+            // Button States
+            backBtn.disabled = (currentQuestionIndex === 0);
+            nextBtn.innerText = (currentQuestionIndex === currentSet.length - 1) ? "Finish Set 🏁" : "Next ➡";
+
+            // Check stored answer
+            const storedAnswer = userProgress[currentSetIndex][currentQuestionIndex];
+
+            // Build Options
+            optionsContainer.innerHTML = '';
+            phraseTypes.forEach(type => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = type;
+
+                if (storedAnswer) {
+                    btn.disabled = true;
+                    if (type === currentQ.type) btn.classList.add('correct');
+                    else if (type === storedAnswer && type !== currentQ.type) btn.classList.add('wrong');
+                } else {
+                    btn.onclick = () => handleAnswer(type, btn);
+                }
+                optionsContainer.appendChild(btn);
+            });
+
+            if (storedAnswer) {
+                nextBtn.style.display = "inline-block";
+                const isCorrect = (storedAnswer === currentQ.type);
+                feedbackText.innerText = isCorrect ? "Correct! 🎉" : `Oops! It was a ${currentQ.type}.`;
+                feedbackText.style.color = isCorrect ? "#00b894" : "#d63031";
+            } else {
+                nextBtn.style.display = "none";
+            }
+        }
+
+        function handleAnswer(selectedType, btnElement) {
+            const currentSet = quizSets[currentSetIndex];
+            const currentQ = currentSet[currentQuestionIndex];
+
+            // Save Answer
+            userProgress[currentSetIndex][currentQuestionIndex] = selectedType;
+
+            const allButtons = document.querySelectorAll('.option-btn');
+
+            if (selectedType === currentQ.type) {
+                btnElement.classList.add('correct');
+                feedbackText.style.color = "#00b894";
+                feedbackText.innerText = "Correct! 🎉";
+            } else {
+                btnElement.classList.add('wrong');
+                feedbackText.style.color = "#d63031";
+                feedbackText.innerText = `Oops! It was a ${currentQ.type}.`;
+                // Highlight actual correct answer
+                allButtons.forEach(btn => {
+                    if (btn.innerText === currentQ.type) btn.classList.add('correct');
+                });
+            }
+
+            allButtons.forEach(btn => btn.disabled = true);
+            nextBtn.style.display = "inline-block";
+        }
+
+        function nextQuestion() {
+            const currentSet = quizSets[currentSetIndex];
+            if (currentQuestionIndex < currentSet.length - 1) {
+                currentQuestionIndex++;
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                loadQuestion();
+            }
+        }
+
+        function showResults() {
+            const currentSet = quizSets[currentSetIndex];
+            const answers = userProgress[currentSetIndex];
+            let score = 0;
+
+            answers.forEach((ans, idx) => {
+                if (ans === currentSet[idx].type) score++;
+            });
+
+            quizInterface.style.display = 'none';
+            resultsInterface.style.display = 'block';
+            document.getElementById('final-score').innerText = `${score} / ${currentSet.length}`;
+
+            const evalText = document.getElementById('evaluation-text');
+            const percentage = (score / currentSet.length) * 100;
+
+            if (percentage === 100) evalText.innerText = "Wow! Perfect Score! 🌟";
+            else if (percentage >= 80) evalText.innerText = "Amazing work! 🚀";
+            else if (percentage >= 50) evalText.innerText = "Good job! Keep practicing. 👍";
+            else evalText.innerText = "Nice try! Let's do it again! 😊";
+        }
+
+        function resetCurrentSet() {
+            userProgress[currentSetIndex] = new Array(quizSets[currentSetIndex].length).fill(null);
+            loadSet(currentSetIndex);
+        }
+
+        // Run App
+        init();
+
+    </script>
+
+</body>
+
+</html>
